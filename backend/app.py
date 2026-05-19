@@ -197,22 +197,6 @@ def detect_mood(text):
 
     return "normal"
 
-# ================== HUMAN TOUCH ==================
-
-def add_human_touch(reply):
-
-    prefixes = [
-        "",
-        "Hmm… ",
-        "I think… ",
-        "Maybe… "
-    ]
-
-    if random.random() > 0.6:
-        reply = random.choice(prefixes) + reply
-
-    return reply
-
 # ================== HOME ==================
 
 @app.route("/")
