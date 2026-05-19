@@ -1,61 +1,341 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+
 from groq import Groq
-import os
+from supabase import create_client
+from duckduckgo_search import DDGS
+
 import random
+import os
+import json
+import re
+
+from datetime import datetime
+
+# ================== APP ==================
 
 app = Flask(__name__)
 
-# CORS
 CORS(app, resources={r"/*": {"origins": "*"}})
 
-# ================= GROQ KEYS =================
+# ================== ENV ==================
 
-groq_keys = os.getenv("GROQ_KEYS", "")
+keys = os.getenv("GROQ_KEYS", "")
+GROQ_KEYS = keys.split(",") if keys else []
 
-GROQ_KEYS = groq_keys.split(",") if groq_keys else []
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
 if not GROQ_KEYS:
     raise ValueError("Missing GROQ_KEYS")
 
-# ================= HOME =================
+# ================== MEMORY ==================
+
+user_memory = {}
+MAX_HISTORY = 50
+
+# ================== SUPABASE ==================
+
+supabase = create_client(
+    SUPABASE_URL,
+    SUPABASE_KEY
+)
+
+# ================== AI CLIENT ==================
+
+def get_client():
+
+    return Groq(
+        api_key=random.choice(GROQ_KEYS)
+    )
+
+# ================== USER ==================
+
+def get_user(user_id):
+
+    response = supabase.table("users") \
+        .select("*") \
+        .eq("user_id", user_id) \
+        .execute()
+
+    data = response.data
+
+    if data:
+        return data[0]
+
+    return {
+        "name": "",
+        "notes": [],
+        "summary": "",
+        "emotions": []
+    }
+
+def save_user(user_id, profile):
+
+    supabase.table("users").upsert({
+        "user_id": user_id,
+        "name": profile["name"],
+        "notes": profile["notes"],
+        "summary": profile["summary"],
+        "emotions": profile["emotions"]
+    }).execute()
+
+# ================== WEB SEARCH ==================
+
+def web_search(query):
+
+    results_text = ""
+
+    try:
+
+        with DDGS() as ddgs:
+
+            results = list(
+                ddgs.text(
+                    query,
+                    max_results=5
+                )
+            )
+
+        for r in results:
+
+            title = r.get("title", "")
+            body = r.get("body", "")
+
+            results_text += f"""
+Title: {title}
+
+Snippet: {body}
+
+"""
+
+    except Exception as e:
+
+        results_text = f"Search failed: {str(e)}"
+
+    return results_text
+
+# ================== TIME ==================
+
+def get_time_context():
+
+    hour = datetime.now().hour
+
+    if 5 <= hour < 12:
+        return "morning"
+
+    elif 12 <= hour < 18:
+        return "afternoon"
+
+    elif 18 <= hour < 24:
+        return "evening"
+
+    return "night"
+
+# ================== PERSONALITY ==================
+
+SYSTEM_PROMPT = """
+You are Eva.
+
+You are soft-spoken, emotionally intelligent,
+gentle, calm, warm, and natural.
+
+Never speak like a robot.
+
+Keep conversations human and emotionally real.
+"""
+
+# ================== MOOD ==================
+
+def detect_mood(text):
+
+    text = text.lower()
+
+    if any(w in text for w in [
+        "sad",
+        "depressed",
+        "tired"
+    ]):
+        return "sad"
+
+    if any(w in text for w in [
+        "error",
+        "problem",
+        "issue"
+    ]):
+        return "frustrated"
+
+    return "normal"
+
+# ================== HUMAN TOUCH ==================
+
+def add_human_touch(reply):
+
+    prefixes = [
+        "",
+        "Hmm… ",
+        "I think… ",
+        "Maybe… "
+    ]
+
+    if random.random() > 0.6:
+        reply = random.choice(prefixes) + reply
+
+    return reply
+
+# ================== HOME ==================
 
 @app.route("/")
 def home():
-    return "Backend Running"
+    return "Eva Backend Running"
 
-# ================= CHAT =================
+# ================== CHAT ==================
 
 @app.route("/chat", methods=["POST"])
 def chat():
 
-    data = request.get_json()
-
-    user_message = data["message"]
-
-    # RANDOM API KEY
-    api_key = random.choice(GROQ_KEYS)
-
     try:
 
-        client = Groq(
-            api_key=api_key
-        )
+        data = request.get_json()
+
+        user_id = data.get("user_id", "guest")
+
+        user_text = data["message"]
+
+        mood = detect_mood(user_text)
+
+        if user_id not in user_memory:
+            user_memory[user_id] = []
+
+        user_memory[user_id].append({
+            "role": "user",
+            "content": user_text
+        })
+
+        user_memory[user_id] = user_memory[user_id][-MAX_HISTORY:]
+
+        profile = get_user(user_id)
+
+        client = get_client()
+
+        # ================== SEARCH ==================
+
+        web_results = ""
+
+        search_prompt = f"""
+Decide if internet search is needed.
+
+Return ONLY:
+YES
+or
+NO
+
+User message:
+{user_text}
+"""
+
+        try:
+
+            search_decision = client.chat.completions.create(
+                model="llama3-8b-8192",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": search_prompt
+                    }
+                ]
+            )
+
+            decision = (
+                search_decision
+                .choices[0]
+                .message
+                .content
+                .strip()
+                .upper()
+            )
+
+            if "YES" in decision:
+
+                web_results = web_search(
+                    user_text
+                )
+
+        except:
+            pass
+
+        # ================== TIME ==================
+
+        time_context = get_time_context()
+
+        # ================== PROMPT ==================
+
+        messages = [
+
+            {
+                "role": "system",
+                "content": SYSTEM_PROMPT
+            },
+
+            {
+                "role": "system",
+                "content": f"time: {time_context}"
+            },
+
+            {
+                "role": "system",
+                "content": f"""
+User name:
+{profile['name']}
+
+User summary:
+{profile['summary']}
+
+User emotions:
+{profile['emotions']}
+
+User notes:
+{profile['notes']}
+
+Internet results:
+{web_results}
+
+Mood:
+{mood}
+"""
+            }
+
+        ]
+
+        messages += user_memory[user_id]
+
+        # ================== AI RESPONSE ==================
 
         response = client.chat.completions.create(
 
-            model="llama-3.1-8b-instant",
+            model="llama3-70b-8192",
 
-            messages=[
-                {
-                    "role": "user",
-                    "content": user_message
-                }
-            ]
+            messages=messages
 
         )
 
-        reply = response.choices[0].message.content
+        reply = (
+            response
+            .choices[0]
+            .message
+            .content
+        )
+
+        reply = add_human_touch(reply)
+
+        # ================== SAVE ==================
+
+        user_memory[user_id].append({
+            "role": "assistant",
+            "content": reply
+        })
+
+        save_user(user_id, profile)
 
         return jsonify({
             "reply": reply
@@ -66,12 +346,13 @@ def chat():
         print("ERROR:", e)
 
         return jsonify({
-            "reply": "AI server busy right now."
+            "reply": "Something went wrong."
         }), 500
 
-# ================= RUN =================
+# ================== RUN ==================
 
 if __name__ == "__main__":
+
     app.run(
         host="0.0.0.0",
         port=10000
