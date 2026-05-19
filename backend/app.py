@@ -5,13 +5,18 @@ import os
 
 app = Flask(__name__)
 
-CORS(app)
+# IMPORTANT
+CORS(app, resources={r"/*": {"origins": "*"}})
 
 genai.configure(
     api_key=os.getenv("GEMINI_API_KEY")
 )
 
 model = genai.GenerativeModel("gemini-1.5-flash")
+
+@app.route("/")
+def home():
+    return "Backend Running"
 
 @app.route("/chat", methods=["POST"])
 def chat():
@@ -25,10 +30,6 @@ def chat():
     return jsonify({
         "reply": response.text
     })
-
-@app.route("/")
-def home():
-    return "Backend Running"
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
