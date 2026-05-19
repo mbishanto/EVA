@@ -1,4 +1,4 @@
-const API_URL = "PASTE_RENDER_BACKEND_URL_HERE";
+const API_URL = "https://eva-jqur.onrender.com";
 
 async function sendMessage(){
 
