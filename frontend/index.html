@@ -2,38 +2,183 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+
   <title>Eva AI</title>
 
+  <!-- Font -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Icons -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+  />
+
   <link rel="stylesheet" href="style.css">
+
 </head>
 
 <body>
 
-<div class="chat-container">
+  <!-- Background -->
 
-  <div class="header">
-    Eva AI
+  <div class="bg-grid"></div>
+
+  <div class="gradient gradient-1"></div>
+  <div class="gradient gradient-2"></div>
+
+  <!-- App -->
+
+  <div class="app">
+
+    <!-- Sidebar -->
+
+    <aside class="sidebar">
+
+      <div>
+
+        <div class="logo-area">
+
+          <div class="logo">
+            <i class="fa-solid fa-sparkles"></i>
+          </div>
+
+          <div>
+            <h2>Eva AI</h2>
+            <p>Advanced Assistant</p>
+          </div>
+
+        </div>
+
+        <button class="new-chat">
+          <i class="fa-solid fa-plus"></i>
+          New Chat
+        </button>
+
+        <div class="menu">
+
+          <div class="menu-title">
+            RECENT
+          </div>
+
+          <div class="menu-item active">
+            <i class="fa-regular fa-message"></i>
+            AI Dashboard Design
+          </div>
+
+          <div class="menu-item">
+            <i class="fa-regular fa-message"></i>
+            Python Automation
+          </div>
+
+          <div class="menu-item">
+            <i class="fa-regular fa-message"></i>
+            UI Development
+          </div>
+
+        </div>
+
+      </div>
+
+      <div class="profile">
+
+        <div class="profile-avatar">
+          S
+        </div>
+
+        <div class="profile-info">
+          <h4>Shanto</h4>
+          <p>Premium Plan</p>
+        </div>
+
+      </div>
+
+    </aside>
+
+    <!-- Main -->
+
+    <main class="main">
+
+      <!-- Top -->
+
+      <div class="topbar">
+
+        <div>
+
+          <h1>Eva AI</h1>
+          <p>Real-time conversational intelligence</p>
+
+        </div>
+
+        <div class="top-actions">
+
+          <button class="top-btn">
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </button>
+
+          <button class="top-btn">
+            <i class="fa-solid fa-sliders"></i>
+          </button>
+
+        </div>
+
+      </div>
+
+      <!-- Chat -->
+
+      <div id="chat-box" class="chat-box">
+
+        <div class="welcome">
+
+          <div class="welcome-badge">
+            EVA AI
+          </div>
+
+          <h2>
+            Intelligent conversations with modern AI
+          </h2>
+
+          <p>
+            Ask questions, generate content, solve problems, and build projects with advanced conversational responses.
+          </p>
+
+        </div>
+
+      </div>
+
+      <!-- Input -->
+
+      <div class="input-wrapper">
+
+        <button class="icon-button">
+          <i class="fa-solid fa-paperclip"></i>
+        </button>
+
+        <input
+          type="text"
+          id="message"
+          placeholder="Message Eva AI..."
+        >
+
+        <button class="icon-button">
+          <i class="fa-solid fa-microphone"></i>
+        </button>
+
+        <button onclick="sendMessage()" class="send-btn">
+          <i class="fa-solid fa-arrow-up"></i>
+        </button>
+
+      </div>
+
+    </main>
+
   </div>
-
-  <div id="chat-box" class="chat-box"></div>
-
-  <div class="input-area">
-
-    <input
-      type="text"
-      id="message"
-      placeholder="Ask anything..."
-    >
-
-    <button onclick="sendMessage()">
-      Send
-    </button>
-
-  </div>
-
-</div>
 
 <script src="script.js"></script>
 
