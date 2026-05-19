@@ -1,4 +1,6 @@
+groq
 flask
 flask-cors
-groq
+supabase
+duckduckgo-search
 gunicorn
