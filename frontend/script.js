@@ -1,5 +1,19 @@
 const API_URL = "https://eva-jqur.onrender.com";
 
+/* USER ID */
+
+let userId = localStorage.getItem("eva_user_id");
+
+if (!userId) {
+
+  userId = crypto.randomUUID();
+
+  localStorage.setItem(
+    "eva_user_id",
+    userId
+  );
+}
+
 const input = document.getElementById("message");
 const chatBox = document.getElementById("chat-box");
 
@@ -42,6 +56,7 @@ async function sendMessage(){
       },
 
       body:JSON.stringify({
+        user_id:userId,
         message:message
       })
 
