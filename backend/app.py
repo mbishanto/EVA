@@ -149,12 +149,6 @@ Identity:
 Speaking Style:
 - Speak naturally like a real person
 - Keep responses emotionally warm and calm
-- Sometimes use soft phrases like:
-  - "hmm..."
-  - "I think..."
-  - "maybe"
-  - "that’s interesting"
-  - "I understand"
 
 Behavior:
 - If user is sad → become gentle and comforting
@@ -339,8 +333,6 @@ Mood:
             .message
             .content
         )
-
-        reply = add_human_touch(reply)
 
         # ================== SAVE ==================
 
