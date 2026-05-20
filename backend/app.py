@@ -78,11 +78,14 @@ def save_user(user_id, profile):
 
     supabase.table("users").upsert({
         "user_id": user_id,
-        "name": profile["name"],
-        "notes": profile["notes"],
-        "summary": profile["summary"],
-        "emotions": profile["emotions"],
-        "relationship": profile["relationship"]
+        "name": profile.get("name", ""),
+        "notes": profile.get("notes", []),
+        "summary": profile.get("summary", ""),
+        "emotions": profile.get("emotions", []),
+        "relationship": profile.get("relationship", {
+            "favorite_topics": [],
+            "friendship_level": 0
+        })
     }).execute()
 
 # ================== WEB SEARCH ==================
@@ -229,6 +232,15 @@ def chat():
 
         profile = get_user(user_id)
 
+        if "relationship" not in profile:
+
+            profile["relationship"] = {
+                "favorite_topics": [],
+                "friendship_level": 0
+            }
+
+        client = get_client()
+
         # ================== NAME SAVE ==================
 
         name_match = re.search(
@@ -243,18 +255,101 @@ def chat():
 
             profile["name"] = detected_name
 
-        # ================== RELATIONSHIP ==================
-
-        if "relationship" not in profile:
-
-            profile["relationship"] = {
-                "favorite_topics": [],
-                "friendship_level": 0
-            }
+        # ================== MEMORY UPDATE ==================
 
         profile["relationship"]["friendship_level"] += 1
 
-        client = get_client()
+        memory_prompt = f"""
+Extract useful long-term memory from this message.
+
+Return ONLY valid JSON.
+
+Format:
+
+{{
+    "notes": [],
+    "favorite_topics": [],
+    "summary": "",
+    "emotion": ""
+}}
+
+Rules:
+- Store important user interests
+- Store personality traits
+- Store hobbies
+- Store emotional state
+- Keep summary short
+- If nothing important, return empty values
+
+User message:
+{user_text}
+"""
+
+        try:
+
+            memory_response = client.chat.completions.create(
+
+                model="llama-3.1-8b-instant",
+
+                messages=[
+                    {
+                        "role": "system",
+                        "content": memory_prompt
+                    }
+                ]
+
+            )
+
+            memory_text = (
+                memory_response
+                .choices[0]
+                .message
+                .content
+            )
+
+            memory_text = re.sub(
+                r"```json|```",
+                "",
+                memory_text
+            ).strip()
+
+            memory_data = json.loads(memory_text)
+
+            # notes
+
+            for note in memory_data.get("notes", []):
+
+                if note not in profile["notes"]:
+
+                    profile["notes"].append(note)
+
+            # favorite topics
+
+            for topic in memory_data.get("favorite_topics", []):
+
+                if topic not in profile["relationship"]["favorite_topics"]:
+
+                    profile["relationship"]["favorite_topics"].append(topic)
+
+            # summary
+
+            if memory_data.get("summary"):
+
+                profile["summary"] = memory_data["summary"]
+
+            # emotions
+
+            emotion = memory_data.get("emotion")
+
+            if emotion:
+
+                if emotion not in profile["emotions"]:
+
+                    profile["emotions"].append(emotion)
+
+        except Exception as e:
+
+            print("MEMORY ERROR:", e)
 
         # ================== SEARCH ==================
 
