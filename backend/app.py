@@ -32,7 +32,7 @@ if not GROQ_KEYS:
 # ================== MEMORY ==================
 
 user_memory = {}
-MAX_HISTORY = 50
+MAX_HISTORY = 1000
 
 # ================== SUPABASE ==================
 
@@ -67,7 +67,11 @@ def get_user(user_id):
         "name": "",
         "notes": [],
         "summary": "",
-        "emotions": []
+        "emotions": [],
+        "relationship": {
+            "favorite_topics": [],
+            "friendship_level": 0
+        }
     }
 
 def save_user(user_id, profile):
@@ -77,7 +81,8 @@ def save_user(user_id, profile):
         "name": profile["name"],
         "notes": profile["notes"],
         "summary": profile["summary"],
-        "emotions": profile["emotions"]
+        "emotions": profile["emotions"],
+        "relationship": profile["relationship"]
     }).execute()
 
 # ================== WEB SEARCH ==================
@@ -224,6 +229,31 @@ def chat():
 
         profile = get_user(user_id)
 
+        # ================== NAME SAVE ==================
+
+        name_match = re.search(
+            r"(my name is|i am|i'm)\s+([A-Za-z ]+)",
+            user_text,
+            re.IGNORECASE
+        )
+
+        if name_match:
+
+            detected_name = name_match.group(2).strip()
+
+            profile["name"] = detected_name
+
+        # ================== RELATIONSHIP ==================
+
+        if "relationship" not in profile:
+
+            profile["relationship"] = {
+                "favorite_topics": [],
+                "friendship_level": 0
+            }
+
+        profile["relationship"]["friendship_level"] += 1
+
         client = get_client()
 
         # ================== SEARCH ==================
@@ -304,6 +334,9 @@ User emotions:
 
 User notes:
 {profile['notes']}
+
+Relationship:
+{profile['relationship']}
 
 Internet results:
 {web_results}
