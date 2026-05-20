@@ -2,16 +2,11 @@ const API_URL = "https://eva-jqur.onrender.com";
 
 /* USER ID */
 
-let userId = localStorage.getItem("eva_user_id");
+const userId = localStorage.getItem("eva_user");
 
-if (!userId) {
+if(!userId){
 
-  userId = crypto.randomUUID();
-
-  localStorage.setItem(
-    "eva_user_id",
-    userId
-  );
+  window.location.href = "login.html";
 }
 
 const input = document.getElementById("message");
