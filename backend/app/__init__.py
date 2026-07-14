@@ -9,20 +9,27 @@ def create_app(config_class=Config):
     app = Flask(__name__)
     app.config.from_object(config_class)
 
+    # ------------------------------------------------------------------
+    # CORS configuration
+    # ------------------------------------------------------------------
+    # Origins are loaded from the FRONTEND_URL environment variable.
+    # See app/config.py for details on how the list is built.
+    # ------------------------------------------------------------------
+    # To add a new frontend domain:
+    #   Append it to the FRONTEND_URL env var, e.g.:
+    #     FRONTEND_URL=https://eva-me.vercel.app,https://eva-ai.vercel.app
+    #   No code changes are required.
+    # ------------------------------------------------------------------
     CORS(
         app,
         resources={
             r"/*": {
-                "origins": [
-                    "https://eva-ai.vercel.app",
-                    "http://localhost:3000",
-                    "http://localhost:5500",
-                    "http://127.0.0.1:5500",
-                    "http://localhost:8000",
-                ]
+                "origins": config_class.FRONTEND_URLS,
+                "methods": ["GET", "POST", "OPTIONS"],
+                "allow_headers": ["Authorization", "Content-Type"],
+                "supports_credentials": False,
             }
         },
-        supports_credentials=True,
     )
 
     register_middleware(app)

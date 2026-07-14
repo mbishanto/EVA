@@ -24,8 +24,7 @@ eva/
 │   │   └── utils/          # Helpers & validation
 │   │       ├── helpers.py  # Sanitization, JSON parsing, response builders
 │   │       └── validators.py # Request validation decorators
-│   ├── run.py              # Development entry point
-│   ├── app.py              # Production entry point (Render)
+│   ├── wsgi.py             # Single entry point (dev + production)
 │   ├── requirements.txt    # Pinned dependencies
 │   └── .env.example        # Environment variable template
 ├── frontend/               # Static files (Vercel)
@@ -94,6 +93,10 @@ Required variables:
 - `SUPABASE_URL` - your Supabase project URL
 - `SUPABASE_KEY` - your Supabase service role key (not the anon key)
 - `SUPABASE_JWT_SECRET` - JWT secret from Supabase Auth settings
+- `FRONTEND_URL` - one or more comma-separated frontend origins (e.g. `https://eva-me.vercel.app,https://eva-ai.vercel.app`)
+
+  In development this defaults to `http://localhost:3000` and `http://localhost:5173`.
+  In production this variable is **required** — the server will refuse to start without it.
 
 ### 3. Database Setup
 
@@ -102,10 +105,12 @@ Run the SQL in `backend/app/supabase_schema.sql` in your Supabase SQL Editor to 
 ### 4. Run Backend
 
 ```bash
-python run.py
+python wsgi.py
 ```
 
 The API will be available at `http://localhost:10000`.
+
+Both `python wsgi.py` (development) and `gunicorn wsgi:app` (production) use the same entry point.
 
 ### 5. Serve Frontend
 
@@ -130,7 +135,7 @@ Open `http://localhost:3000` and sign in.
 2. Create a new Web Service on Render
 3. Set:
    - **Build Command**: `pip install -r backend/requirements.txt`
-   - **Start Command**: `cd backend && gunicorn app:app`
+    - **Start Command**: `cd backend && gunicorn wsgi:app`
    - **Root Directory**: Leave blank (Render will use the repo root)
 4. Add all environment variables from `.env.example`
 
