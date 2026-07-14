@@ -1,41 +1,45 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline'; style-src 'self' https://fonts.googleapis.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://*.supabase.co; frame-ancestors 'none';">
   <title>Eva AI - Sign Up</title>
-
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
+  <div class="bg-grid"></div>
+  <div class="gradient gradient-1"></div>
+  <div class="gradient gradient-2"></div>
 
-<div class="auth-container">
+  <div class="auth-container">
+    <div class="auth-box">
+      <div class="auth-logo">
+        <div class="logo"><i class="fa-solid fa-sparkles"></i></div>
+      </div>
+      <h1>Create Account</h1>
+      <p class="auth-subtitle">Start your journey with Eva AI</p>
 
-  <div class="auth-box">
+      <div id="auth-error" class="auth-error" style="display:none"></div>
 
-    <h1>Create Account</h1>
+      <input type="email" id="email" placeholder="Email" autocomplete="email">
+      <input type="password" id="password" placeholder="Password" autocomplete="new-password">
 
-    <input type="email" id="email" placeholder="Email">
+      <button onclick="signup()" id="signup-btn">
+        <span id="signup-text">Create Account</span>
+        <i id="signup-spinner" class="fa-solid fa-circle-notch fa-spin" style="display:none"></i>
+      </button>
 
-    <input type="password" id="password" placeholder="Password">
-
-    <button onclick="signup()">
-      Sign Up
-    </button>
-
-    <p>
-      Already have account?
-      <a href="login.html">Login</a>
-    </p>
-
+      <p class="auth-footer">
+        Already have an account? <a href="login.html">Sign in</a>
+      </p>
+    </div>
   </div>
 
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-<script src="auth.js"></script>
-
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/auth.js"></script>
 </body>
 </html>

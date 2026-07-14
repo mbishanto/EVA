@@ -1,186 +1,134 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net 'unsafe-inline' 'unsafe-eval'; style-src 'self' https://fonts.googleapis.com https://cdnjs.cloudflare.com 'unsafe-inline'; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data:; connect-src 'self' https://*.supabase.co https://*.onrender.com http://localhost:*; frame-ancestors 'none';">
+  <title>Eva AI - Intelligent Assistant</title>
 
-  <title>Eva AI</title>
-
-  <!-- Font -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-  <!-- Icons -->
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
-  />
-
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/styles/atom-one-dark.min.css">
   <link rel="stylesheet" href="style.css">
-
 </head>
-
 <body>
 
-  <!-- Background -->
-
   <div class="bg-grid"></div>
-
   <div class="gradient gradient-1"></div>
   <div class="gradient gradient-2"></div>
 
-  <!-- App -->
+  <div id="toast-container" class="toast-container"></div>
 
   <div class="app">
 
+    <!-- Sidebar Overlay (mobile) -->
+    <div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
     <!-- Sidebar -->
-
-    <aside class="sidebar">
-
-      <div>
-
+    <aside id="sidebar" class="sidebar">
+      <div class="sidebar-top">
         <div class="logo-area">
-
           <div class="logo">
             <i class="fa-solid fa-sparkles"></i>
           </div>
-
           <div>
             <h2>Eva AI</h2>
             <p>Advanced Assistant</p>
           </div>
-
         </div>
 
-        <button class="new-chat">
+        <button class="new-chat" onclick="app.newChat()">
           <i class="fa-solid fa-plus"></i>
           New Chat
         </button>
 
-        <div class="menu">
-
-          <div class="menu-title">
-            RECENT
-          </div>
-
-          <div class="menu-item active">
-            <i class="fa-regular fa-message"></i>
-            AI Dashboard Design
-          </div>
-
-          <div class="menu-item">
-            <i class="fa-regular fa-message"></i>
-            Python Automation
-          </div>
-
-          <div class="menu-item">
-            <i class="fa-regular fa-message"></i>
-            UI Development
-          </div>
-
+        <div class="search-box">
+          <i class="fa-solid fa-search"></i>
+          <input type="text" id="conversation-search" placeholder="Search conversations..." oninput="app.searchConversations(this.value)">
         </div>
 
+        <div id="conversation-list" class="menu"></div>
       </div>
 
-      <div class="profile">
-
-        <div class="profile-avatar">
-          S
-        </div>
-
+      <div id="profile-card" class="profile">
+        <div class="profile-avatar" id="profile-avatar">S</div>
         <div class="profile-info">
-          <h4>Shanto</h4>
-          <p>Premium Plan</p>
+          <h4 id="profile-name">User</h4>
+          <p><i class="fa-regular fa-circle-check"></i> Premium Plan</p>
         </div>
-
+        <button class="profile-logout" onclick="app.logout()" title="Logout">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
       </div>
-
     </aside>
 
     <!-- Main -->
-
     <main class="main">
-
-      <!-- Top -->
-
       <div class="topbar">
-
-        <div>
-
-          <h1>Eva AI</h1>
-          <p>Real-time conversational intelligence</p>
-
+        <div class="topbar-left">
+          <button class="hamburger" onclick="toggleSidebar()">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+          <div>
+            <h1 id="chat-title">Eva AI</h1>
+            <p id="chat-subtitle">Real-time conversational intelligence</p>
+          </div>
         </div>
 
         <div class="top-actions">
-
-          <button class="top-btn">
-            <i class="fa-solid fa-magnifying-glass"></i>
+          <div class="model-selector">
+            <i class="fa-solid fa-microchip"></i>
+            <select id="model-select" onchange="app.changeModel(this.value)">
+              <option value="llama-3.1-8b-instant">Llama 3.1 8B</option>
+              <option value="llama-3.3-70b-versatile">Llama 3.3 70B</option>
+              <option value="mixtral-8x7b-32768">Mixtral 8x7B</option>
+              <option value="gemma2-9b-it">Gemma 2 9B</option>
+            </select>
+          </div>
+          <button class="top-btn" onclick="app.exportChat()" title="Export chat">
+            <i class="fa-solid fa-download"></i>
           </button>
-
-          <button class="top-btn">
-            <i class="fa-solid fa-sliders"></i>
+          <button class="top-btn" id="delete-chat-btn" onclick="app.deleteCurrentConversation()" title="Delete conversation" style="display:none;">
+            <i class="fa-solid fa-trash-can"></i>
           </button>
-
         </div>
-
       </div>
-
-      <!-- Chat -->
 
       <div id="chat-box" class="chat-box">
-
-        <div class="welcome">
-
-          <div class="welcome-badge">
-            EVA AI
-          </div>
-
-          <h2>
-            Intelligent conversations with modern AI
-          </h2>
-
-          <p>
-            Ask questions, generate content, solve problems, and build projects with advanced conversational responses.
-          </p>
-
+        <div class="welcome" id="welcome-screen">
+          <div class="welcome-badge">EVA AI</div>
+          <h2>Intelligent conversations with modern AI</h2>
+          <p>Ask questions, generate content, solve problems, and build projects with advanced conversational responses.</p>
         </div>
-
       </div>
 
-      <!-- Input -->
-
-      <div class="input-wrapper">
-
-        <button class="icon-button">
+      <div class="input-wrapper" id="input-wrapper">
+        <button class="icon-button" onclick="document.getElementById('file-input').click()" title="Attach file">
           <i class="fa-solid fa-paperclip"></i>
         </button>
-
-        <input
-          type="text"
-          id="message"
-          placeholder="Message Eva AI..."
-        >
-
-        <button class="icon-button">
-          <i class="fa-solid fa-microphone"></i>
+        <input type="file" id="file-input" style="display:none" accept=".txt,.md,.py,.js,.html,.css,.json,.csv">
+        <input type="text" id="message" placeholder="Message Eva AI..." autofocus>
+        <div id="token-display" class="token-display"></div>
+        <button class="icon-button" title="Clear chat" onclick="app.clearChat()">
+          <i class="fa-regular fa-trash-can"></i>
         </button>
-
-        <button onclick="sendMessage()" class="send-btn">
+        <button onclick="app.sendMessage()" class="send-btn" id="send-btn">
           <i class="fa-solid fa-arrow-up"></i>
         </button>
-
       </div>
-
     </main>
-
   </div>
 
-<script src="script.js"></script>
-
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.10.0/highlight.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.6/dist/purify.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/api.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/chat.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>
